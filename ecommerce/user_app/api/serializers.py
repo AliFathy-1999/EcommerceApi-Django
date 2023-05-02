@@ -1,82 +1,27 @@
-# # from django.contrib.auth.models import User
-# from user_app.models import User
-# from rest_framework import serializers
-# import os
-
-# class RegistrationSerializer(serializers.ModelSerializer):
-    
-#     # firstName = serializers.CharField(min_length=3,max_length=20)
-#     # lastName = serializers.CharField(min_length=3,max_length=20)
-#     # profilePic = serializers.ImageField()
-    
-#     class Meta:
-#         model = User
-#         fields = ('id','firstName','lastName','username','email','password','profilePic')
-#         extra_kwargs = {
-#             'password' : {'write_only': True}
-#         }
-        
-        
-#     def validate_profilePic(self, value):
-#         ext = os.path.splitext(value.name)[1]
-#         valid_extensions = ['.jpg', '.jpeg', '.png','.jfif','.jpg']
-#         if not ext.lower() in valid_extensions:
-#             raise serializers.ValidationError("File extension not supported. Supported extensions are .png, .jpeg, .jpg, .jfif.")
-        
-#         max_size = 5 * 1024 * 1024
-#         if value.size > max_size:
-#             raise serializers.ValidationError("File size exceeds the limit of 5 MB.")
-        
-#         return value
-    
-#     def save(self):
-        
-#         password=self.validated_data['password']
-#         profilePic = self.validated_data.get('profilePic')
-        
-#         if User.objects.filter(email=self.validated_data['email']).exists():
-#             raise serializers.ValidationError({'error': 'Email already exists!'})
-        
-#         if User.objects.filter(username=self.validated_data['username']).exists():
-#             raise serializers.ValidationError({'error': 'username already exists!'})
-        
-#         account = User(
-#                 firstName=self.validated_data['firstName'], 
-#                 lastName=self.validated_data['lastName'],
-#                 email=self.validated_data['email'],
-#                 username=self.validated_data['username'],
-#             )
-        
-#         account.set_password(password)
-        
-#         if profilePic:
-#             account.profilePic = profilePic
-            
-#         account.save()
-        
-#         return account
-        
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 import os
 
+User = get_user_model()
+
 class RegistrationSerializer(serializers.ModelSerializer):
     
-    firstName = serializers.CharField(required=True,min_length=4,max_length=20)
-    lastName = serializers.CharField(required=True,min_length=4,max_length=20)
-    profilePic = serializers.ImageField(required=True)
+    first_name = serializers.CharField(required=True,min_length=4,max_length=20)
+    last_name = serializers.CharField(required=True,min_length=4,max_length=20)
+    profile_pic = serializers.ImageField(required=True)
     username = serializers.CharField(required=True,min_length=4, max_length=20)
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'firstName','lastName','profilePic']
+        fields = ['username', 'email', 'password', 'first_name','last_name','profile_pic']
         extra_kwargs = {
             'password' : {'write_only': True}
         }
         
-    def validate_profilePic(self, value):
+    def validate_profile_pic(self, value):
         ext = os.path.splitext(value.name)[1]
         valid_extensions = ['.jpg', '.jpeg', '.png','.jfif','.jpg']
         if not ext.lower() in valid_extensions:
@@ -88,20 +33,20 @@ class RegistrationSerializer(serializers.ModelSerializer):
         
         return value
     
-    def validate_firstName_lastName(self, data):
-        firstName = data.get('firstName')
-        lastName = data.get('lastName')
+    def validate_first_name_last_name(self, data):
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
         
-        if not isinstance(firstName, str):
+        if not isinstance(first_name, str):
             raise serializers.ValidationError("First name must be a string.")
         
-        if not isinstance(lastName, str):
+        if not isinstance(last_name, str):
             raise serializers.ValidationError("Last name must be a string.")
         
-        if len(firstName) < 4 or len(firstName) > 20:
+        if len(first_name) < 4 or len(first_name) > 20:
             raise serializers.ValidationError("First name length must be between 4 and 20 characters.")
         
-        if len(lastName) < 4 or len(lastName) > 20:
+        if len(last_name) < 4 or len(last_name) > 20:
             raise serializers.ValidationError("Last name length must be between 4 and 20 characters.")
         
         return data
@@ -120,33 +65,47 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def save(self):
 
         password = self.validated_data['password']
+        profile_pic = self.validated_data['profile_pic']
         
         if User.objects.filter(username=self.validated_data['username']).exists():
-            raise serializers.ValidationError({'username': 'Email already exists!'})
+            raise serializers.ValidationError({'error': 'username already exists!'})
         
 
         if User.objects.filter(email=self.validated_data['email']).exists():
             raise serializers.ValidationError({'error': 'Email already exists!'})
 
-        filename = self.validated_data['username'] + os.path.splitext(self.validated_data['profilePic'])[1]
+        user = User(
+                email=self.validated_data['email'],
+                username=self.validated_data['username'],
+                first_name=self.validated_data['first_name'],
+                last_name = self.validated_data['last_name'],
+
+            )
+        
+        user.set_password(password)
+            
+        user.save()
+        
+        # Set the profile_pic attribute on the user instance directly
+        # fs = FileSystemStorage()
+        # filename = fs.save(profile_pic.name, ContentFile(profile_pic.read()))
+        # user.profile_pic = filename
+        # user.save()
+        
+        filename = str(self.validated_data['username']) + os.path.splitext(self.validated_data['profile_pic'].name)[1]
+
         # create a FileSystemStorage instance for the static directory
         fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
 
         # save the image to the static directory
-        fs.save(filename, self.validated_data['profilePic'])
+        fs.save(filename, self.validated_data['profile_pic'])
         
-        account = User(
-                email=self.validated_data['email'],
-                username=self.validated_data['username'],
-                firstName=self.validated_data['firstName'],
-                lastName = self.validated_data['lastName'],
-                profilePic = filename,
-            )
+        # profile_pic = User(user=account, profile_pic=filename)
+        # profile_pic.save()
         
-        account.set_password(password)
-            
-        account.save()
+        user.profile_pic = filename
+        user.save()
 
-        return account
+        return user
         
     
