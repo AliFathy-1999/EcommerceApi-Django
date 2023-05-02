@@ -5,6 +5,7 @@ from rest_framework.authtoken.models import Token
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.core.validators import MinLengthValidator, MaxLengthValidator
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
