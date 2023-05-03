@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 import os
+from user_app.models import Address
 
 User = get_user_model()
 
@@ -108,4 +109,63 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         return user
         
-    
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['id', 'user', 'street_name', 'street_no', 'government', 'district', 'house_no', 'apartment_no', 'floor_no', 'additional_info']
+        read_only_fields = ['id', 'user']
+
+    def validate(self, data):
+        """
+        Check if the address fields are valid.
+        """
+        street_name = data.get('street_name')
+        if not isinstance(street_name, str):
+            raise serializers.ValidationError("Street name must be a string.")
+        if len(street_name) < 2 or len(street_name) > 100:
+            raise serializers.ValidationError("Street name length must be between 2 and 100 characters.")
+
+        street_no = data.get('street_no')
+        if not isinstance(street_no, str):
+            raise serializers.ValidationError("Street number must be a string.")
+        if len(street_no) < 1 or len(street_no) > 10:
+            raise serializers.ValidationError("Street number length must be between 1 and 10 characters.")
+
+        government = data.get('government')
+        if not isinstance(government, str):
+            raise serializers.ValidationError("Government must be a string.")
+        if len(government) < 2 or len(government) > 100:
+            raise serializers.ValidationError("Government length must be between 2 and 100 characters.")
+
+        district = data.get('district')
+        if not isinstance(district, str):
+            raise serializers.ValidationError("District must be a string.")
+        if len(district) < 2 or len(district) > 100:
+            raise serializers.ValidationError("District length must be between 2 and 100 characters.")
+
+        house_no = data.get('house_no')
+        if not isinstance(house_no, str):
+            raise serializers.ValidationError("House number must be a string.")
+        if len(house_no) < 1 or len(house_no) > 10:
+            raise serializers.ValidationError("House number length must be between 1 and 10 characters.")
+
+        apartment_no = data.get('apartment_no')
+        if apartment_no and not isinstance(apartment_no, str):
+            raise serializers.ValidationError("Apartment number must be a string.")
+        if apartment_no and (len(apartment_no) < 1 or len(apartment_no) > 10):
+            raise serializers.ValidationError("Apartment number length must be between 1 and 10 characters.")
+
+        floor_no = data.get('floor_no')
+        if floor_no and not isinstance(floor_no, str):
+            raise serializers.ValidationError("Floor number must be a string.")
+        if floor_no and (len(floor_no) < 1 or len(floor_no) > 10):
+            raise serializers.ValidationError("Floor number length must be between 1 and 10 characters.")
+
+        additional_info = data.get('additional_info')
+        if additional_info and not isinstance(additional_info, str):
+            raise serializers.ValidationError("Additional info must be a string.")
+        if additional_info and len(additional_info) > 500:
+            raise serializers.ValidationError("Additional info length must be less than or equal to 500 characters.")
+
+        return data
