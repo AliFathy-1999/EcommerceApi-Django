@@ -98,4 +98,4 @@ class AddressViewSet(viewsets.ModelViewSet):
     def destroy(self, request, pk=None):
         address = self.get_object()
         address.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'success':'Address deleted successfuly'},status=status.HTTP_204_NO_CONTENT)
