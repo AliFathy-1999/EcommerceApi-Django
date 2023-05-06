@@ -16,6 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+<<<<<<< HEAD
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('product/', include('product_app.api.urls')),
+=======
 from rest_framework import routers
 from user_app.api.views import AddressViewSet
 
@@ -26,4 +32,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('account/', include('user_app.api.urls')),
      path('user/', include(router.urls)),
+>>>>>>> 4f6d5125dbc26c3d034f640b5bd94d8afe65ccdb
 ]
