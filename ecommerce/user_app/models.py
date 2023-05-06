@@ -13,7 +13,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
         
-        
+       
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     street_name = models.CharField(max_length=100)
