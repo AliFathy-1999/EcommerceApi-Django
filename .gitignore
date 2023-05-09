@@ -6,4 +6,3 @@ local_settings.py
 menv/
 /product_app/migrations/
 /user_app/migrations/
-/menv/
