@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 import os
 from user_app.models import Address
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 User = get_user_model()
 
@@ -44,10 +45,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         if not isinstance(last_name, str):
             raise serializers.ValidationError("Last name must be a string.")
         
-        if len(first_name) < 4 or len(first_name) > 20:
+        if len(first_name) < 3 or len(first_name) > 20:
             raise serializers.ValidationError("First name length must be between 4 and 20 characters.")
         
-        if len(last_name) < 4 or len(last_name) > 20:
+        if len(last_name) < 3 or len(last_name) > 20:
             raise serializers.ValidationError("Last name length must be between 4 and 20 characters.")
         
         return data
@@ -61,50 +62,45 @@ class RegistrationSerializer(serializers.ModelSerializer):
         
         return value
     
-    
-    
-    def save(self):
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        return value
 
+    def save(self):
         password = self.validated_data['password']
-        profile_pic = self.validated_data['profile_pic']
-        
+        profile_pic = self.validated_data.get('profile_pic')
+
         if User.objects.filter(username=self.validated_data['username']).exists():
             raise serializers.ValidationError({'error': 'username already exists!'})
-        
 
         if User.objects.filter(email=self.validated_data['email']).exists():
             raise serializers.ValidationError({'error': 'Email already exists!'})
 
         user = User(
-                email=self.validated_data['email'],
-                username=self.validated_data['username'],
-                first_name=self.validated_data['first_name'],
-                last_name = self.validated_data['last_name'],
+            email=self.validated_data['email'],
+            username=self.validated_data['username'],
+            first_name=self.validated_data['first_name'],
+            last_name=self.validated_data['last_name'],
+        )
 
-            )
-        
         user.set_password(password)
-            
-        user.save()
-        
-        # Set the profile_pic attribute on the user instance directly
-        # fs = FileSystemStorage()
-        # filename = fs.save(profile_pic.name, ContentFile(profile_pic.read()))
-        # user.profile_pic = filename
-        # user.save()
-        
-        filename = str(self.validated_data['username']) + os.path.splitext(self.validated_data['profile_pic'].name)[1]
 
-        # create a FileSystemStorage instance for the static directory
-        fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
+        default_profile_pic_path = staticfiles_storage.path('default.png')
+        if not profile_pic:
+            user.profile_pic = default_profile_pic_path
+        else:
+            ext = os.path.splitext(profile_pic.name)[1]
+            filename = str(self.validated_data['username']) + ext
 
-        # save the image to the static directory
-        fs.save(filename, self.validated_data['profile_pic'])
-        
-        # profile_pic = User(user=account, profile_pic=filename)
-        # profile_pic.save()
-        
-        user.profile_pic = filename
+            # create a FileSystemStorage instance for the static directory
+            fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
+
+            # save the image to the static directory
+            fs.save(filename, profile_pic)
+
+            user.profile_pic = filename
+
         user.save()
 
         return user
@@ -125,6 +121,10 @@ class AddressSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Street name must be a string.")
         if len(street_name) < 2 or len(street_name) > 100:
             raise serializers.ValidationError("Street name length must be between 2 and 100 characters.")
+        if not street_name:
+            raise serializers.ValidationError("Street name cannot be empty.")
+        if any(char.isdigit() for char in street_name):
+            raise serializers.ValidationError("Street name cannot contain numbers.")
 
         street_no = data.get('street_no')
         if not isinstance(street_no, str):
@@ -137,6 +137,10 @@ class AddressSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Government must be a string.")
         if len(government) < 2 or len(government) > 100:
             raise serializers.ValidationError("Government length must be between 2 and 100 characters.")
+        if not government:
+            raise serializers.ValidationError("Government cannot be empty.")
+        if any(char.isdigit() for char in government):
+            raise serializers.ValidationError("Government cannot contain numbers.")
 
         district = data.get('district')
         if not isinstance(district, str):

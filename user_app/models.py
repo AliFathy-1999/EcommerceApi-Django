@@ -36,6 +36,10 @@ class Address(models.Model):
             raise ValidationError("Street name must be a string.")
         if len(self.street_name) < 2 or len(self.street_name) > 100:
             raise ValidationError("Street name length must be between 2 and 100 characters.")
+        if not self.street_name:
+            raise ValidationError("Street name cannot be empty.")
+        if any(char.isdigit() for char in self.street_name):
+            raise ValidationError("Street name cannot contain numbers.")
 
         if not isinstance(self.street_no, str):
             raise ValidationError("Street number must be a string.")
@@ -46,6 +50,10 @@ class Address(models.Model):
             raise ValidationError("Government must be a string.")
         if len(self.government) < 2 or len(self.government) > 100:
             raise ValidationError("Government length must be between 2 and 100 characters.")
+        if not self.government:
+            raise ValidationError("Government cannot be empty.")
+        if any(char.isdigit() for char in self.government):
+            raise ValidationError("Government cannot contain numbers.")
 
         if not isinstance(self.district, str):
             raise ValidationError("District must be a string.")
