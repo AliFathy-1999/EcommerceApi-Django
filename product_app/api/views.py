@@ -1,21 +1,23 @@
 from rest_framework.response import Response
-from django.db.models import Count
 from rest_framework.decorators import api_view
 from rest_framework import status
 from product_app.models import Category,Product
 from product_app.api.serializers import CategorySerializer,ProductSerializer
-from product_app.api.pagination import ProductLimitOffsetPagination,ProductPagination
+from product_app.api.pagination import ProductPagination
 from http import *
 @api_view(['GET'])
 def get_categories(request):
     try:
-        categories = Category.objects.annotate(num_products=Count('product')).values('id', 'name', 'categoryPic', 'num_products')
-        category_list = list(categories) 
-        all_categories = {'categories': category_list}
-        return Response(all_categories,status=status.HTTP_200_OK)
+        Categories = Category.objects.all()
+        paginator = ProductPagination()
+        paginated_categories = paginator.paginate_queryset(Categories, request)
+        serializer = CategorySerializer(paginated_categories,many=True)
+        Response.status_code = status.HTTP_200_OK;
+        return paginator.get_paginated_response({"categories" : serializer.data})
     except Category.DoesNotExist:
         raise Exception('Error in getting categories')
-    
+    except Exception  as e:
+        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['GET'])
 def category_details(request,pk):
     try:
@@ -33,15 +35,12 @@ def category_details(request,pk):
 
 @api_view(['POST'])
 def create_category(request):
-    try:
-        serializer = CategorySerializer(data=request.data);
-        if serializer.is_valid():
-            serializer.save();
-            return Response(serializer.data,status=status.HTTP_201_CREATED);
-        else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);    
+    serializer = CategorySerializer(data=request.data);
+    if serializer.is_valid():
+        serializer.save();
+        return Response(serializer.data,status=status.HTTP_201_CREATED);
+    else:
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['PUT'])
 def update_category(request,pk):
@@ -55,8 +54,6 @@ def update_category(request,pk):
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     except Category.DoesNotExist:
         return Response({"message":"Invalid Category Id"},status.HTTP_404_NOT_FOUND);
-    except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['DELETE'])
 def deleted_category(request,pk):
     try:
@@ -65,8 +62,6 @@ def deleted_category(request,pk):
         return Response({"message":"Category Deleted Successfully"},status=status.HTTP_204_NO_CONTENT);
     except Category.DoesNotExist:
         return Response({"message":"Invalid Category Id"},status.HTTP_404_NOT_FOUND);
-    except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 # Products APIS 
 
 @api_view(['GET'])
@@ -81,7 +76,7 @@ def get_products(request):
     except Category.DoesNotExist:
         raise Exception('Error in getting products')
     except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);   
+        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);  
      
 @api_view(['GET'])
 def product_details(request,pk):
@@ -91,19 +86,15 @@ def product_details(request,pk):
         return Response(serializer.data,status=status.HTTP_200_OK)
     except Product.DoesNotExist:
         return Response({"message":"Invalid product Id"},status.HTTP_404_NOT_FOUND);
-    except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
+
 @api_view(['POST'])
 def create_product(request):
-    try:
-        serializer = ProductSerializer(data=request.data);
-        if serializer.is_valid():
-            serializer.save();
-            return Response(serializer.data,status=status.HTTP_201_CREATED);
-        else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
+    serializer = ProductSerializer(data=request.data);
+    if serializer.is_valid():
+        serializer.save();
+        return Response(serializer.data,status=status.HTTP_201_CREATED);
+    else:
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['PUT'])
 def update_product(request,pk):
@@ -117,8 +108,6 @@ def update_product(request,pk):
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     except Product.DoesNotExist:
         return Response({"message":"Invalid product Id"},status.HTTP_404_NOT_FOUND);
-    except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['DELETE'])
 def deleted_product(request,pk):
     try:
@@ -127,5 +116,3 @@ def deleted_product(request,pk):
         return Response({"message":"Product Deleted Successfully"},status=status.HTTP_204_NO_CONTENT);
     except Product.DoesNotExist:
         return Response({"message":"Invalid product Id"},status.HTTP_404_NOT_FOUND);
-    except Exception  as e:
-        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
