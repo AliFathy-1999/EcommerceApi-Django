@@ -3,24 +3,35 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from product_app.models import Category,Product
 from product_app.api.serializers import CategorySerializer,ProductSerializer
+from product_app.api.pagination import ProductPagination
 from http import *
 @api_view(['GET'])
 def get_categories(request):
     try:
         Categories = Category.objects.all()
-        serializer = CategorySerializer(Categories,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        paginator = ProductPagination()
+        paginated_categories = paginator.paginate_queryset(Categories, request)
+        serializer = CategorySerializer(paginated_categories,many=True)
+        Response.status_code = status.HTTP_200_OK;
+        return paginator.get_paginated_response({"categories" : serializer.data})
     except Category.DoesNotExist:
         raise Exception('Error in getting categories')
-    
+    except Exception  as e:
+        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['GET'])
 def category_details(request,pk):
     try:
         category = Category.objects.get(pk=pk)
+        categoryProducts = Product.objects.filter(categoryId = category.id).values("id", "name", "description", "quantity","productPic","price")
+        paginator = ProductPagination()
+        paginated_products = paginator.paginate_queryset(categoryProducts, request)
         serializer = CategorySerializer(category)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        Response.status_code = status.HTTP_200_OK;
+        return paginator.get_paginated_response({"category":serializer.data,"products":paginated_products})
     except Category.DoesNotExist:
         return Response({"message":"Invalid Category Id"},status.HTTP_404_NOT_FOUND);
+    except Exception  as e:
+        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 
 @api_view(['POST'])
 def create_category(request):
@@ -57,10 +68,15 @@ def deleted_category(request,pk):
 def get_products(request):
     try:
         products = Product.objects.all()
-        serializer = ProductSerializer(products,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        paginator = ProductPagination();
+        result_page = paginator.paginate_queryset(products, request)
+        serializer = ProductSerializer(result_page,many=True)
+        Response.status_code = status.HTTP_200_OK;
+        return paginator.get_paginated_response(serializer.data)
     except Category.DoesNotExist:
-        raise Exception('Error in getting products')   
+        raise Exception('Error in getting products')
+    except Exception  as e:
+        return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);  
      
 @api_view(['GET'])
 def product_details(request,pk):
