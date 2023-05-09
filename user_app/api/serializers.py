@@ -86,21 +86,32 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         user.set_password(password)
 
-        default_profile_pic_path = staticfiles_storage.path('default.png')
-        if not profile_pic:
-            user.profile_pic = default_profile_pic_path
-        else:
-            ext = os.path.splitext(profile_pic.name)[1]
-            filename = str(self.validated_data['username']) + ext
+        # default_profile_pic_path = staticfiles_storage.path('default.png')
+        # if not profile_pic:
+        #     user.profile_pic = default_profile_pic_path
+        # else:
+        #     ext = os.path.splitext(profile_pic.name)[1]
+        #     filename = str(self.validated_data['username']) + ext
+
+        #     # create a FileSystemStorage instance for the static directory
+        #     fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
+
+        #     # save the image to the static directory
+        #     fs.save(filename, profile_pic)
+
+        #     user.profile_pic = filename
+
+        ext = os.path.splitext(profile_pic.name)[1]
+        filename = str(self.validated_data['username']) + ext
 
             # create a FileSystemStorage instance for the static directory
-            fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
+        fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
 
             # save the image to the static directory
-            fs.save(filename, profile_pic)
+        fs.save(filename, profile_pic)
 
-            user.profile_pic = filename
-
+        user.profile_pic = filename
+        
         user.save()
 
         return user
