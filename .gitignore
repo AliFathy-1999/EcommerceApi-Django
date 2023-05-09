@@ -3,4 +3,6 @@
 *.pyc
 __pycache__/
 local_settings.py
-/menv
+menv/
+/product_app/migrations/
+/user_app/migrations/
