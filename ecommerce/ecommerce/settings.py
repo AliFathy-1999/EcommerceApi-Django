@@ -39,8 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'product_app',
     'rest_framework',
-    'rest_framework.authtoken',
-    'user_app',
 ]
 
 MIDDLEWARE = [
@@ -130,7 +128,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 100
 }
 
 STATICFILES_DIRS = [
