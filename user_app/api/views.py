@@ -12,20 +12,27 @@ from user_app.api.serializers import AddressSerializer
 from user_app.models import Address
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-
+from card_app.models import Cart
 
 @api_view(['POST',])
 def logout_view(request):
 
     if request.method == 'POST':
         user = request.user
+        
+        # delete user's cart
+        Cart.objects.filter(user=user).delete()
+        
         user.auth_token.delete()
         
         # delete user's profile picture from disk
-        if user.profile_pic:
-            profile_pic_path = os.path.join(settings.STATICFILES_DIRS[0], user.profile_pic)
-            if os.path.exists(profile_pic_path):
-                os.remove(profile_pic_path)
+        try:
+            if user.profile_pic:
+                profile_pic_path = os.path.join(settings.STATICFILES_DIRS[0], user.profile_pic)
+                if os.path.exists(profile_pic_path):
+                    os.remove(profile_pic_path)
+        except AttributeError:
+            pass
         
         user.delete()
         return Response({'success':'logged out successfuly'},status=status.HTTP_200_OK)
