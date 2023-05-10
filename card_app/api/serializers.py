@@ -10,7 +10,7 @@ User = get_user_model()
 class CartSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    total_amount = serializers.ReadOnlyField()
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = Cart
@@ -29,6 +29,9 @@ class CartSerializer(serializers.ModelSerializer):
         if product.quantity < data['quantity']:
             raise serializers.ValidationError('Not enough products available')
         return data
+    
+    def get_total_amount(self, obj):
+        return obj.quantity * obj.product.price
 
     def create(self, validated_data):
         product = validated_data['product']
@@ -37,9 +40,17 @@ class CartSerializer(serializers.ModelSerializer):
         cart, created = Cart.objects.get_or_create(product=product, user=user)
         cart.quantity += quantity
         cart.save()
+        product.quantity -= quantity  
+        product.save()
         return cart
 
     def update(self, instance, validated_data):
-        instance.quantity = validated_data.get('quantity', instance.quantity)
+        quantity = validated_data.get('quantity', instance.quantity)
+        product = instance.product
+        quantity_diff = instance.quantity - quantity  # Calculate the difference between old and new quantities
+        product.quantity += quantity_diff  # Update the product quantity accordingly
+        product.save()
+        instance.quantity = quantity
         instance.save()
+        instance.total_amount = self.get_total_amount(instance) 
         return instance
