@@ -38,18 +38,18 @@ class CartSerializer(serializers.ModelSerializer):
         quantity = validated_data['quantity']
         user = validated_data['user']
         cart, created = Cart.objects.get_or_create(product=product, user=user)
-        cart.quantity += quantity
+        cart.quantity = quantity
         cart.save()
-        product.quantity -= quantity  
-        product.save()
+        # product.quantity -= quantity  
+        # product.save()
         return cart
 
     def update(self, instance, validated_data):
         quantity = validated_data.get('quantity', instance.quantity)
-        product = instance.product
-        quantity_diff = instance.quantity - quantity  # Calculate the difference between old and new quantities
-        product.quantity += quantity_diff  # Update the product quantity accordingly
-        product.save()
+        # product = instance.product
+        # quantity_diff = instance.quantity - quantity  # Calculate the difference between old and new quantities
+        # product.quantity += quantity_diff  # Update the product quantity accordingly
+        # product.save()
         instance.quantity = quantity
         instance.save()
         instance.total_amount = self.get_total_amount(instance) 
