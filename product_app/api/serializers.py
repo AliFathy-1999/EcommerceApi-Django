@@ -59,7 +59,7 @@ class ProductSerializer(serializers.Serializer):
     productPic = serializers.ImageField()
     avgRating = serializers.DecimalField(max_digits=4, decimal_places=2)
     quantity = serializers.IntegerField()
-    # categoryId = serializers.ForeignKey()
+    categoryId = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     def __str__(self):
         return self.name
     def create(self, validated_data):

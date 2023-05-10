@@ -6,3 +6,5 @@ local_settings.py
 menv/
 /product_app/migrations/
 /user_app/migrations/
+/card_app/migrations/
+/wishlist_app/migrations/

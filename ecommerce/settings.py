@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'user_app',
     'card_app',
     'wishlist_app',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -137,6 +138,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 STATICFILES_DIRS = [
