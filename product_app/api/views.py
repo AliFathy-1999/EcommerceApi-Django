@@ -1,12 +1,11 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from rest_framework import status,filters
+from rest_framework import status
 from django.db.models import Count
+from django.db import IntegrityError
 from product_app.models import Category,Product
 from product_app.api.serializers import CategorySerializer,ProductSerializer
 from product_app.api.pagination import ProductPagination
-from http import *
-from django_filters.rest_framework import DjangoFilterBackend
 # ***
 # *** Categories APIS ***
 # ***
@@ -47,6 +46,8 @@ def create_category(request):
             return Response(serializer.data,status=status.HTTP_201_CREATED);
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    except IntegrityError as e:
+            return Response({"message":"Category name is already in use"},status.HTTP_400_BAD_REQUEST);
     except Exception  as e:
         return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['PUT'])
@@ -61,6 +62,8 @@ def update_category(request,pk):
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     except Category.DoesNotExist:
         return Response({"message":"Invalid Category Id"},status.HTTP_404_NOT_FOUND);
+    except IntegrityError as e:
+            return Response({"message":"Category name is already in use"},status.HTTP_400_BAD_REQUEST);
     except Exception  as e:
         return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['DELETE'])
@@ -110,6 +113,8 @@ def create_product(request):
             return Response(serializer.data,status=status.HTTP_201_CREATED);
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    except IntegrityError as e:
+            return Response({"message":"Product name is already in use"},status.HTTP_400_BAD_REQUEST);
     except Exception  as e:
         return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['PUT'])
@@ -124,6 +129,8 @@ def update_product(request,pk):
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     except Product.DoesNotExist:
         return Response({"message":"Invalid product Id"},status.HTTP_404_NOT_FOUND);
+    except IntegrityError as e:
+            return Response({"message":"Product name is already in use"},status.HTTP_400_BAD_REQUEST);
     except Exception  as e:
         return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
 @api_view(['DELETE'])
@@ -143,7 +150,7 @@ def search_on_products(request):
         key = request.query_params.get('key');
         searchProducts = Product.objects.all();      
         if key:
-            searchProducts = searchProducts.filter(name__icontains=key)
+            searchProducts = searchProducts.filter(name__icontains=key.strip())
         paginator = ProductPagination();
         result_page = paginator.paginate_queryset(searchProducts, request)
         serializer = ProductSerializer(result_page,many=True)

@@ -4,7 +4,8 @@
 __pycache__/
 local_settings.py
 menv/
-/product_app/migrations/
-/user_app/migrations/
-/card_app/migrations/
-/wishlist_app/migrations/
+product_app/migrations/
+user_app/migrations/
+card_app/migrations/
+wishlist_app/migrations/
+order_app/migrations/
