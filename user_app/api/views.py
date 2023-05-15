@@ -4,7 +4,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
-# from rest_framework_simplejwt.tokens import RefreshToken
 import os
 from user_app.api.serializers import RegistrationSerializer
 from user_app import models
@@ -19,9 +18,6 @@ def logout_view(request):
 
     if request.method == 'POST':
         user = request.user
-        
-        # delete user's cart
-        Cart.objects.filter(user=user).delete()
         
         user.auth_token.delete()
         
@@ -57,7 +53,8 @@ def registration_view(request):
             data['profile_pic'] = account.profile_pic
             token = Token.objects.get(user=account).key
             data['token'] = token
-       
+            cart = Cart(user=account)
+            cart.save()
         else:
             data = serializer.errors
         

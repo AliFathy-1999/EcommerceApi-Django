@@ -7,6 +7,7 @@ from django.core.validators import MinValueValidator
 User = get_user_model()
 
 class Order(models.Model):
+    # additional note to Model
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     products = models.ManyToManyField(Product, related_name='orders',through='OrderItem')
     totalAmount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
