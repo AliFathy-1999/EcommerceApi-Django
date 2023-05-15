@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'wishlist_app',
     'django_filters',
     'order_app',
+    'payment_app',
 ]
 
 MIDDLEWARE = [
