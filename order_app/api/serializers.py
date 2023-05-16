@@ -11,7 +11,7 @@ User = get_user_model()
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["id","user","totalAmount","orderDate","status","address","note","payment_method"]
+        fields = ["id","user","totalAmount","orderDate","status","address","note","payment_method","phone"]
     
     def __str__(self):
          return f"{self.user.username}'s order is ordered at {self.orderDate} and order status is {self.status}"    

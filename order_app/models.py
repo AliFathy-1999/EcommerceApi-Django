@@ -2,9 +2,17 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from user_app.models import Address
 from product_app.models import Product
-
+from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinLengthValidator,MaxLengthValidator,MinValueValidator
+from django.core.exceptions import ValidationError
+import re
 User = get_user_model()
+def validate_phone(value):
+    pattern = r'^\+20\d{10}$'
+    if not value.startswith('+'):
+        raise ValidationError("Phone number must start with a plus sign.")
+    if not re.match(pattern, value):
+        raise ValidationError("Invalid Egyptian phone number.")
 
 class Order(models.Model):
     # additional note to Model
@@ -30,11 +38,11 @@ class Order(models.Model):
         ('VISA', 'Pay by Visa'),
     )
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    phone = PhoneNumberField(null=False, blank=False,region='EG',validators=[validate_phone])
     def __str__(self):
         return f"{self.user.username}'s order is ordered at {(self.orderDate).strftime('%Y-%m-%d %H:%M:%S')} and order status is {self.status}"    
     
 class OrderItem(models.Model):
-    # Orderitem(orderId,productid,price,quantity)
     order = models.ForeignKey(Order, on_delete=models.CASCADE,related_name='order_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2)
