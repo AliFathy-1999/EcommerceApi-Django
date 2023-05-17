@@ -1,1 +1,1 @@
-web: gunicorn app:app --bind
+web: gunicorn ecommerce.wsgi --bind 0.0.0.0:8000
