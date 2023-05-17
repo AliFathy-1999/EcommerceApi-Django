@@ -84,11 +84,11 @@ WSGI_APPLICATION = 'ecommerce.wsgi.application'
 
 DATABASES = {
    'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-       'NAME': 'EcommerceDjango',
-       'USER': 'postgres',
-       'PASSWORD': 'password78',
-       'HOST': 'localhost',
+       'ENGINE': 'postgres://dbadmin:VlZtwdr2DYjq5WASQhSr5F5jkLdMOW4n@dpg-chi7pujhp8u7g2eesteg-a.oregon-postgres.render.com/ecommerce_cuv1',
+       'NAME': 'ecommerce_cuv1',
+       'USER': 'dbadmin',
+       'PASSWORD': 'VlZtwdr2DYjq5WASQhSr5F5jkLdMOW4n',
+       'HOST': 'dpg-chi7pujhp8u7g2eesteg-a',
        'PORT': '5432',
    }
 }
