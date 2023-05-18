@@ -30,12 +30,12 @@ def update_cart_item(request, pk):
 
         serializer.save()
 
-        if quantity > old_quantity:
-            product.quantity -= (quantity - old_quantity)
-        elif quantity < old_quantity:
-            product.quantity += (old_quantity - quantity)
+        # if quantity > old_quantity:
+        #     product.quantity -= (quantity - old_quantity)
+        # elif quantity < old_quantity:
+        #     product.quantity += (old_quantity - quantity)
 
-        product.save()
+        # product.save()
 
         cart_item.totalPrice = quantity * product.price
         cart_item.save()
@@ -71,8 +71,8 @@ def add_to_cart(request):
     cart_item.totalPrice = cart_item.quantity * product.price
     cart_item.save()
 
-    product.quantity -= quantity
-    product.save()
+    # product.quantity -= quantity
+    # product.save()
 
     serializer = CartItemSerializer(cart_item)
 
@@ -88,9 +88,9 @@ def remove_from_cart(request, pk):
     except CartItem.DoesNotExist:
         return Response({'error': 'Cart item does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-    product = cart_item.product
-    product.quantity += cart_item.quantity
-    product.save()
+    # product = cart_item.product
+    # product.quantity += cart_item.quantity
+    # product.save()
 
     cart_item.delete()
 
