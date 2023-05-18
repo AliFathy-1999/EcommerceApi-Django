@@ -15,6 +15,20 @@ from card_app.models import Cart
 from user_app.api.serializers import UserSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from user_app.api.serializers import UserUpdateSerializer
+
+@api_view(['PUT',])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def update_user(request):
+    user = request.user
+    serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])

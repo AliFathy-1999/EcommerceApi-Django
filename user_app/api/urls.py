@@ -11,5 +11,6 @@ urlpatterns = [
     path('register/', registration_view, name='register'),
     path('logout/', logout_view, name='logout'),
     path('user/', get_logged_in_user, name='get-logged-in-user'),
+    path('user/update/', update_user, name='update-user'),
     path('user/address/', include(router.urls)),
 ]

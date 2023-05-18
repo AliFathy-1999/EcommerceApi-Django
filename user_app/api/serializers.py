@@ -110,6 +110,32 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return user
         
 
+class UserUpdateSerializer(RegistrationSerializer):
+    def create(self, validated_data):
+        raise NotImplementedError("Cannot create new user with UserUpdateSerializer.")
+
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get('email', instance.email)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+
+        profile_pic = validated_data.get('profile_pic')
+        if profile_pic:
+            ext = os.path.splitext(profile_pic.name)[1]
+            filename = str(instance.username) + ext
+            fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
+            fs.save(filename, profile_pic)
+            instance.profile_pic = filename
+
+        instance.save()
+
+        return instance
+
+
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
