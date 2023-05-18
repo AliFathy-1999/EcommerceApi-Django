@@ -9,10 +9,17 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 
 User = get_user_model()
 
+class UserSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
+
 class RegistrationSerializer(serializers.ModelSerializer):
     
-    first_name = serializers.CharField(required=True,min_length=4,max_length=20)
-    last_name = serializers.CharField(required=True,min_length=4,max_length=20)
+    first_name = serializers.CharField(required=True,min_length=3,max_length=20)
+    last_name = serializers.CharField(required=True,min_length=3,max_length=20)
     profile_pic = serializers.ImageField(required=False)
     username = serializers.CharField(required=True,min_length=4, max_length=20)
     

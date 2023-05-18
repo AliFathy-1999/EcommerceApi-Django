@@ -12,6 +12,19 @@ from user_app.models import Address
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from card_app.models import Cart
+from user_app.api.serializers import UserSerializer
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_logged_in_user(request):
+    user = request.user
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
+
 
 @api_view(['POST',])
 def logout_view(request):
