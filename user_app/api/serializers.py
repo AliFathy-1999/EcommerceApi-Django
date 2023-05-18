@@ -9,10 +9,17 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 
 User = get_user_model()
 
+class UserSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
+
 class RegistrationSerializer(serializers.ModelSerializer):
     
-    first_name = serializers.CharField(required=True,min_length=4,max_length=20)
-    last_name = serializers.CharField(required=True,min_length=4,max_length=20)
+    first_name = serializers.CharField(required=True,min_length=3,max_length=20)
+    last_name = serializers.CharField(required=True,min_length=3,max_length=20)
     profile_pic = serializers.ImageField(required=False)
     username = serializers.CharField(required=True,min_length=4, max_length=20)
     
@@ -102,6 +109,46 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         return user
         
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    
+    profile_pic = serializers.ImageField(required=False)
+    
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'profile_pic', 'username')
+
+    def create(self, validated_data):
+        raise NotImplementedError("Cannot create new user with UserUpdateSerializer.")
+
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get('email', instance.email)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+
+        profile_pic = validated_data.get('profile_pic')
+        if profile_pic:
+            old_username = instance.username
+            new_username = validated_data.get('username', old_username)
+            ext = os.path.splitext(profile_pic.name)[1]
+            old_filename = str(old_username) + ext
+            new_filename = str(new_username) + ext
+            fs = FileSystemStorage(location=settings.MEDIA_ROOT)
+            if fs.exists(old_filename):
+                fs.delete(new_filename) # Delete new file if it exists
+                fs.move(old_filename, new_filename)
+            fs.save(new_filename, profile_pic)
+            instance.profile_pic = new_filename
+
+        instance.username = validated_data.get('username', instance.username)
+        instance.save()
+
+        return instance
+
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
