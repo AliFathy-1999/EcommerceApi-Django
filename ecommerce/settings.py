@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'wishlist_app',
     'django_filters',
     'order_app',
-    "phonenumber_field",
+    'phonenumber_field',
 ]
 
 MIDDLEWARE = [
