@@ -110,7 +110,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return user
         
 
-class UserUpdateSerializer(RegistrationSerializer):
+class UserUpdateSerializer(serializers.ModelSerializer):
+    
+    profile_pic = serializers.ImageField(required=False)
+    
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'profile_pic', 'username')
+
     def create(self, validated_data):
         raise NotImplementedError("Cannot create new user with UserUpdateSerializer.")
 
@@ -125,12 +132,19 @@ class UserUpdateSerializer(RegistrationSerializer):
 
         profile_pic = validated_data.get('profile_pic')
         if profile_pic:
+            old_username = instance.username
+            new_username = validated_data.get('username', old_username)
             ext = os.path.splitext(profile_pic.name)[1]
-            filename = str(instance.username) + ext
-            fs = FileSystemStorage(location=settings.STATICFILES_DIRS[0])
-            fs.save(filename, profile_pic)
-            instance.profile_pic = filename
+            old_filename = str(old_username) + ext
+            new_filename = str(new_username) + ext
+            fs = FileSystemStorage(location=settings.MEDIA_ROOT)
+            if fs.exists(old_filename):
+                fs.delete(new_filename) # Delete new file if it exists
+                fs.move(old_filename, new_filename)
+            fs.save(new_filename, profile_pic)
+            instance.profile_pic = new_filename
 
+        instance.username = validated_data.get('username', instance.username)
         instance.save()
 
         return instance
