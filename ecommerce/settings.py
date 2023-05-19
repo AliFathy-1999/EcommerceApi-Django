@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django_filters',
     'order_app',
     'phonenumber_field',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
@@ -143,6 +145,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+    'https://checkout.stripe.com',
+]
 
 STRIPE_SECRET_KEY = 'sk_test_51N8LeGKdFCT9g2m54Hd3xbdV52SqeEfSsh8CGeGCcwBkMupmtEtqNfFs6dCDTw8uYGINPDv3Nh9iPzdqZwKwgVQK00tNIoNSQQ'
 

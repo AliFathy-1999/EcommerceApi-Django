@@ -45,7 +45,7 @@ class CheckOutView(APIView):
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-                    success_url = f'{settings.SITE_URL}/orderiscreated?token={token}&user={request.user.id}',
+                    success_url = f'{settings.SITE_URL}/orderiscreated?stp={token}',
                     cancel_url = f'{settings.SITE_URL}/orderiscancelled',
             )
             payment_token = PaymentToken(user=request.user,token=token,is_valid=True)
@@ -66,7 +66,7 @@ class OrderAPI(APIView):
     @transaction.atomic
     def post(self, request, format=None):
         try:
-            token = request.POST.get('token')
+            token = request.get('token')
             if(token):
                 payment_token = PaymentToken.objects.get(user_id=request.user.id,token=token,is_valid=True)
                 if not payment_token :
