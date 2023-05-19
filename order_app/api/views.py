@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404,redirect
 from .permissions import IsAddressOwner
 from django.db import transaction
 import stripe
+from stripe.error import AuthenticationError
 from django.conf import settings
 stripe.api_key = settings.STRIPE_SECRET_KEY
 import secrets
@@ -39,14 +40,13 @@ class CheckOutView(APIView):
                     'quantity' : item.quantity
                 }
                 line_items.append(line_item)
-            token = secrets.token_hex(16) 
-            print(token)
+            token = secrets.token_hex(16) # Generate token
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-                    success_url = f'{settings.SITE_URL}/userorder?token={token}&user={request.user.id}',
-                    cancel_url = f'{settings.SITE_URL}/userorder/',
+                    success_url = f'{settings.SITE_URL}/orderiscreated?token={token}&user={request.user.id}',
+                    cancel_url = f'{settings.SITE_URL}/orderiscancelled',
             )
             payment_token = PaymentToken(user=request.user,token=token,is_valid=True)
             payment_token.save()   
@@ -54,7 +54,7 @@ class CheckOutView(APIView):
         except Exception as e:
             return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
         
-class Order(APIView):
+class OrderAPI(APIView):
     """
     List all Orders, or create a new Order.
     """
@@ -66,12 +66,13 @@ class Order(APIView):
     @transaction.atomic
     def post(self, request, format=None):
         try:
-            token = request.GET.get('token')
-            payment_token = PaymentToken.objects.get(user=request.user,token=token,is_valid=True)
-            if not payment_token :
-                raise PermissionError("UnAuthorized Access");
-            payment_token.is_valid=False;
-            payment_token.save()
+            token = request.POST.get('token')
+            if(token):
+                payment_token = PaymentToken.objects.get(user_id=request.user.id,token=token,is_valid=True)
+                if not payment_token :
+                    raise AuthenticationError("UnAuthorized Access");
+                payment_token.is_valid=False;
+                payment_token.save()
             
             cart = get_object_or_404(Cart, user=request.user)
             serializer = CartSerializer(cart)
@@ -88,7 +89,7 @@ class Order(APIView):
                 "user" : request.user.id,
                 "totalAmount":total_price,
                 "status":'PENDING',
-                "address" : int(request.POST.get('address')),
+                "address" : request.POST.get('address'),
                 "note" : request.POST.get('note'),
                 "payment_method" : request.POST.get('payment_method'),
                 "phone" : request.POST.get('phone'),
@@ -105,7 +106,7 @@ class Order(APIView):
                 cart_items.delete()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        except PermissionError as e:
+        except AuthenticationError as e:
             return Response({"message":e.args[0]},status.HTTP_402_PAYMENT_REQUIRED);
         except Exception  as e:
                 return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
