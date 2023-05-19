@@ -8,4 +8,5 @@ menv/
 /card_app/migrations/
 /wishlist_app/migrations/
 /order_app/migrations/
+.env
 /payment_app/migrations/

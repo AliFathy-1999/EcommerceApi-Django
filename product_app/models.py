@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator,FileExtensionValidator
+from django.core.validators import RegexValidator,FileExtensionValidator,MinValueValidator
 # Category Model
 class Category(models.Model):
     name = models.CharField(max_length=40,unique=True,db_index=True,
@@ -19,7 +19,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     productPic = models.ImageField(upload_to='static',null=False, blank=False)
     avgRating = models.DecimalField(max_digits=4, decimal_places=2 ,default=0.0)
-    quantity = models.IntegerField(default=0)
+    quantity = models.IntegerField(default=0,validators=[MinValueValidator(0)])
     categoryId = models.ForeignKey(Category, on_delete=models.CASCADE)
     def __str__(self):
         return self.name

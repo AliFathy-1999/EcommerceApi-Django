@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -142,6 +143,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
+
+STRIPE_SECRET_KEY = 'sk_test_51N8LeGKdFCT9g2m54Hd3xbdV52SqeEfSsh8CGeGCcwBkMupmtEtqNfFs6dCDTw8uYGINPDv3Nh9iPzdqZwKwgVQK00tNIoNSQQ'
+
+SITE_URL = 'http://127.0.0.1:3000'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
