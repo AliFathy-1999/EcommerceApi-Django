@@ -48,4 +48,12 @@ class OrderItem(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField(validators=[MinValueValidator(0)])     
     def __str__(self):
-        return f"{self.order} | {self.product} | {self.price} | {self.quantity}"    
+        return f"{self.order} | {self.product} | {self.price} | {self.quantity}"  
+
+class PaymentToken(models.Model):
+    token = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_valid = models.BooleanField()
+    
+    def __str__(self):
+        return self.token

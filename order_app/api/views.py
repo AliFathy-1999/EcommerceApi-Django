@@ -1,15 +1,60 @@
-from order_app.models import Order,OrderItem
+from order_app.models import Order,OrderItem,PaymentToken
 from .serializers import OrderSerializer,OrderItemSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from user_app.models import Address
 from card_app.models import Cart,CartItem
 from card_app.api.serializers import CartSerializer
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404,redirect
 from .permissions import IsAddressOwner
-class OrderList(APIView):
+from django.db import transaction
+import stripe
+from django.conf import settings
+stripe.api_key = settings.STRIPE_SECRET_KEY
+import secrets
+class CheckOutView(APIView):
+    permission_classes = [IsAuthenticated]
+      
+    def post(self, request):
+        try:
+            cart = get_object_or_404(Cart, user=request.user)
+            cart_items = CartItem.objects.filter(cart=cart.id)
+            if (cart_items.count() == 0):
+                raise Exception('There is no Cart Item is added');
+            
+            total_price = 0
+            for item in cart_items:
+                total_price += item.quantity * item.product.price 
+            line_items = []
+            for item in cart_items:
+                line_item = {
+                    'price_data' :{
+                        'currency' : 'usd',  
+                        'product_data': {
+                            'name': item.product.name,
+                        },
+                        'unit_amount': int(item.product.price * 100)
+                    },
+                    'quantity' : item.quantity
+                }
+                line_items.append(line_item)
+            token = secrets.token_hex(16) 
+            print(token)
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_items,
+                mode='payment',
+                    success_url = f'{settings.SITE_URL}/userorder?token={token}&user={request.user.id}',
+                    cancel_url = f'{settings.SITE_URL}/userorder/',
+            )
+            payment_token = PaymentToken(user=request.user,token=token,is_valid=True)
+            payment_token.save()   
+            return Response({"checkouturl":checkout_session.url},status.HTTP_303_SEE_OTHER);
+        except Exception as e:
+            return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
+        
+class Order(APIView):
     """
     List all Orders, or create a new Order.
     """
@@ -18,11 +63,19 @@ class OrderList(APIView):
         orders = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
-    
+    @transaction.atomic
     def post(self, request, format=None):
         try:
+            token = request.GET.get('token')
+            payment_token = PaymentToken.objects.get(user=request.user,token=token,is_valid=True)
+            if not payment_token :
+                raise PermissionError("UnAuthorized Access");
+            payment_token.is_valid=False;
+            payment_token.save()
+            
             cart = get_object_or_404(Cart, user=request.user)
             serializer = CartSerializer(cart)
+            
             cart_items = CartItem.objects.filter(cart=cart.id)
             if (cart_items.count() == 0):
                 raise Exception('There is no Cart Item is added');
@@ -30,13 +83,12 @@ class OrderList(APIView):
             total_price = 0
             for item in cart_items:
                 total_price += item.quantity * item.product.price   
-            user_address = int(request.POST.get('address'))
-  
+
             order_data = {
                 "user" : request.user.id,
                 "totalAmount":total_price,
                 "status":'PENDING',
-                "address" : user_address,
+                "address" : int(request.POST.get('address')),
                 "note" : request.POST.get('note'),
                 "payment_method" : request.POST.get('payment_method'),
                 "phone" : request.POST.get('phone'),
@@ -53,6 +105,8 @@ class OrderList(APIView):
                 cart_items.delete()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        except PermissionError as e:
+            return Response({"message":e.args[0]},status.HTTP_402_PAYMENT_REQUIRED);
         except Exception  as e:
                 return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
         
@@ -104,3 +158,5 @@ class OrderDetail(APIView):
                     return Response(serializer.data)
             except Exception as e:
                 return Response({"message":e.args[0]},status.HTTP_400_BAD_REQUEST);
+            
+
