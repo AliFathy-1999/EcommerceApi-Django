@@ -1,0 +1,12 @@
+*.log
+*.pot
+*.pyc
+__pycache__/
+/product_app/migrations/
+/user_app/migrations/
+/card_app/migrations/
+/wishlist_app/migrations/
+/order_app/migrations/
+/order_app/migrations/
+.env
+/payment_app/migrations/
