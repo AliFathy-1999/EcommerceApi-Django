@@ -51,14 +51,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
@@ -145,14 +145,35 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
-
 CORS_ORIGIN_ALLOW_ALL = True
 
-CORS_ORIGIN_WHITELIST = [
+CORS_ALLOW_HEADERS=[
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    
+]
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'https://checkout.stripe.com',
 ]
 
+CORS_ALLOW_METHODS = [
+'GET',
+'POST',
+'PUT',
+'PATCH',
+'DELETE',
+'OPTIONS',
+]
 STRIPE_SECRET_KEY = 'sk_test_51N8LeGKdFCT9g2m54Hd3xbdV52SqeEfSsh8CGeGCcwBkMupmtEtqNfFs6dCDTw8uYGINPDv3Nh9iPzdqZwKwgVQK00tNIoNSQQ'
 
 SITE_URL = 'http://127.0.0.1:3000'
